@@ -1,0 +1,568 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    background-color: black;
+    color: #e7e7e7;
+    min-height: 100vh;
+    line-height: 1.5;
+    overflow-x: hidden;
+    transition: background-color 0.5s ease, color 0.5s ease;
+}
+
+.image-gradient {
+    position: absolute;
+    top: 0;
+    right: 0;
+    opacity: 0.5;
+    z-index: -1;
+}
+
+.layer-blur {
+    height: 0;
+    width: 30rem;
+    position: absolute;
+    top: 20%;
+    right: 0;
+    box-shadow: 0 0 700px 15px white;
+    rotate: -30deg;
+    z-index: -1;
+}
+.top{
+    position: absolute;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 0rem;
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    margin-left: 7rem;
+    margin-right: 6rem;
+    overflow: hidden;
+}
+.container {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 2rem;
+    position: relative;
+    overflow: hidden;
+}
+
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 3rem;
+    height: 5rem;
+}
+
+header h1 {
+    margin: 0;
+    font-size: 2rem;
+    font-weight: 300;
+}
+
+nav {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+    margin-left: -2%;
+    
+}
+
+nav a {
+    font-size: 0.9rem;
+    letter-spacing: 0.08rem;
+    transition: color 0.2s ease;
+    text-decoration: none;
+    color: inherit;
+    position: relative;
+    z-index: 999;
+    cursor: pointer;
+}
+
+nav a.active,
+nav a:hover {
+    color: #a7a7a7;
+}
+
+.signing {
+    position: relative;
+    background-color: #a7a7a7;
+    color: black;
+    padding: 0.6rem 1.4rem;
+    border-radius: 50px;
+    border: none;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: background-color 0.2s ease;
+    cursor: pointer;
+    z-index: 999;
+}
+
+.signing:hover {
+    background-color: white;
+}
+
+main {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding-left: 5rem;
+    min-height: calc(90vh - 6rem);
+    position: relative;
+    overflow: hidden;
+}
+
+.content {
+    max-width: 32rem;
+    margin: 0;
+    text-align: left;
+    z-index: 999;
+    padding: 0 1rem;
+    position: relative;
+}
+
+
+
+
+
+.tag-box {
+    position: relative;
+    width: 14rem;
+    height: 2.2rem;
+    border-radius: 50px;
+    background: linear-gradient(to right, #656565, #7f42a7, #6600c5, #5300a0, #757575, #656565);
+    background-size: 200%;
+    animation: animationGradient 2.5s linear infinite;
+    box-shadow: 0 0 10px white;
+    margin-bottom: 1.2rem;
+}
+
+@keyframes animationGradient {
+    to {
+        background-position: 200%;
+    }
+}
+
+.tag-box .tag {
+    position: absolute;
+    inset: 3px;
+    background-color: black;
+    border-radius: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: 0.5s ease;
+    font-size: 0.75rem;
+    cursor: pointer;
+}
+
+.tag-box .tag:hover {
+    color: #5300a0;
+}
+
+.content h1 {
+    font-size: clamp(1.5rem, 4vw, 2.2rem);
+    font-weight: 600;
+    letter-spacing: 0.05rem;
+    margin: 1.5rem 0;
+    line-height: 1.3;
+    text-shadow: 0 0 6px rgba(51, 8, 8, 0.4);
+}
+
+.description {
+    font-size: 0.95rem;
+    letter-spacing: 0.03rem;
+    max-width: 28rem;
+    color: gray;
+    margin-bottom: 1.5rem;
+}
+
+.buttons {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin-top: 2rem;
+}
+
+.btn-get-started {
+    text-decoration: none;
+    border: 1px solid #2a2a2a;
+    padding: 0.5rem 1.3rem;
+    border-radius: 50px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    color: #5300a0;
+    transition: background-color 0.2s;
+}
+
+.btn-get-started:hover {
+    background-color: #1a1a1a;
+}
+
+.btn-signing-main {
+    text-decoration: none;
+    background-color: lightgray;
+    color: black;
+    padding: 0.5rem 1.5rem;
+    border-radius: 50px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    transition: background-color 0.2s ease;
+}
+
+.btn-signing-main:hover {
+    background-color: gray;
+}
+
+@media (max-width: 768px) {
+    .content {
+        text-align: center;
+        padding: 0 1rem;
+    }
+
+    header {
+        flex-direction: column;
+        gap: 1rem;
+        padding: 1rem 1.5rem;
+    }
+
+    nav {
+        margin-left: 0;
+        gap: 1rem;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    .description {
+        font-size: 0.9rem;
+    }
+
+    .tag-box {
+        width: 12rem;
+        height: 2rem;
+    }
+
+    .tag-box .tag {
+        font-size: 0.7rem;
+    }
+}
+
+.robo {
+    position: absolute;
+    top: 0;
+    right: -28%;
+}
+
+/* Toggle button styles */
+#themeToggle {
+    background: none;
+    border: 2px solid #a7a7a7;
+    color: #a7a7a7;
+    padding: 0.4rem 1rem;
+    border-radius: 50px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: background-color 0.3s ease, color 0.3s ease;
+    margin-left: 1rem;
+    position: relative;
+    z-index: 999;
+}
+
+#themeToggle:hover {
+    background-color: #a7a7a7;
+    color: black;
+    cursor: pointer;
+}
+
+/* Light mode styles */
+body.light-mode {
+    background-color: white;
+    color: black;
+}
+
+body.light-mode .tag-box {
+    box-shadow: 0 0 10px #6600c5;
+}
+
+body.light-mode .layer-blur {
+    box-shadow: 0 0 700px 15px black;
+}
+
+body.light-mode .signing {
+    background-color: #333;
+    color: white;
+}
+
+body.light-mode nav a:hover {
+    color: #555;
+}
+
+body.light-mode #themeToggle {
+    border-color: #333;
+    color: #333;
+}
+
+body.light-mode #themeToggle:hover {
+    background-color: #333;
+    color: white;
+}
+
+body.light-mode .description {
+    color: #555;
+}
+
+body.light-mode .tag-box .tag {
+    background-color: white;
+}
+
+body.light-mode .btn-get-started:hover {
+    color: white;
+}
+
+body.light-mode .btn-get-started {
+    transition: all 0.2s;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1300px) {
+    header {
+        padding: 1rem 0.5rem;
+    }
+
+    .content {
+        margin-top: 85%;
+    }
+
+    .robo {
+        scale: 0.8;
+        top: -20%;
+        right: 2%;
+    }
+}
+
+@media (max-width: 768px) {
+    header {
+        padding: 1rem 0.1rem;
+    }
+
+    nav {
+        display: none;
+    }
+
+    header h1 {
+        font-size: 2rem;
+    }
+
+    .btn-signing {
+        padding: 0.6rem 1.5rem;
+    }
+
+    .content {
+        margin-top: 25rem;
+        max-width: 30rem;
+        margin-left: 10%;
+    }
+
+    .robo {
+        scale: 0.5;
+        top: -25%;
+        right: 0;
+    }
+
+    .tag-box {
+        width: 12rem;
+    }
+
+    .content h1 {
+        font-size: 2.5rem;
+    }
+
+    .description {
+        font-size: 1rem;
+    }
+
+    .btn-get-started {
+        font-size: 0.8rem;
+        padding: 0.8rem 1.2rem;
+    }
+
+    .btn-signing-main {
+        font-size: 0.8rem;
+        padding: 0.8rem 2rem;
+    }
+}
+@keyframes slideOutLeft {
+  0% { transform: translateX(0); opacity: 1; }
+  100% { transform: translateX(-100%); opacity: 0; }
+}
+
+@keyframes slideInRight {
+  0% { transform: translateX(100%); opacity: 0; }
+  100% { transform: translateX(0); opacity: 1; }
+}
+
+.slide-out-left {
+  animation: slideOutLeft 0.5s forwards ease-in-out;
+}
+
+.slide-in-right {
+  animation: slideInRight 0.5s forwards ease-in-out;
+}
+/* Hide all pages initially */
+.container,
+.container2,
+.container3,
+.container4{
+  display: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  position: relative;
+}
+
+/* Show only the active one */
+.active-page {
+  display: block;
+  opacity: 1;
+}
+
+/* Slide animations */
+@keyframes slideOutLeft {
+  0% {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+}
+
+@keyframes slideInRight {
+  0% {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+  100% {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.slide-out-left {
+  animation: slideOutLeft 0.5s forwards ease-in-out;
+}
+
+.slide-in-right {
+  animation: slideInRight 0.5s forwards ease-in-out;
+}
+/* spline-viewer {
+  visibility: hidden;
+} */
+
+
+/* .container2 .content {
+  max-width: 800px;
+  margin: 0 auto;
+  text-align: center;
+  padding: 4rem 1rem;
+} */
+    .container2 .content {
+    max-width: 800px;
+    margin: 0 auto;
+    text-align: center;
+    padding: 4rem 1rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.container2 .tag-box {
+  margin-bottom: 1.5rem;
+}
+
+
+.container2 .content h1 {
+  font-size: 2.5rem;
+  font-weight: 600;
+  margin-bottom: 1.5rem;
+}
+
+.container2 .content .description {
+  text-align: center;
+  margin: 0 auto;
+  color: gray;
+  max-width: 600px;
+  font-size: 1rem;
+  line-height: 1.6;
+}
+.container2 .buttons {
+  display: flex;
+  justify-content: center; /* Centers the buttons horizontally */
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-top: 2rem;
+}
+.container2 .about-section .tag-box {
+  margin: 0 auto 5rem auto; /* centers the box */
+}
+
+/* Features Page Styling */
+.container3 .content {
+  max-width: 800px;
+  margin: 0 auto;
+  text-align: center;
+  padding: 4rem 1rem;
+}
+
+.container3 .tag-box {
+  margin: 0 auto 2rem auto;
+}
+
+.container3 h1 {
+  font-size: 2.5rem;
+  font-weight: 600;
+  margin-bottom: 1.5rem;
+}
+
+.container3 .description {
+  font-size: 1rem;
+  color: gray;
+  margin-bottom: 2rem;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+  line-height: 1.6;
+}
+
+.features-list {
+  text-align: left;
+  margin: 0 auto 2rem auto;
+  padding-left: 1rem;
+  max-width: 600px;
+  list-style-type: disc;
+  color: #ccc;
+  font-size: 0.95rem;
+  line-height: 1.7;
+}
+
+.features-list li {
+  margin-bottom: 0.75rem;
+}
+
+.container3 .buttons {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-top: 2rem;
+}

@@ -1,0 +1,335 @@
+<!--
+  telemed_frontend.html
+  Single-file frontend prototype for a telemedicine triage platform.
+  - HTML/CSS/JS only (no backend).
+  - Simulated AI triage response (client-side heuristics) for demo purposes.
+  - Features: symptom input, severity slider, suggested specialities, nearby doctors (uses Geolocation + Google Maps link), mock chat with registered doctors, paid/unpaid flow toggle, consent for monitoring/training, basic UI & accessibility.
+
+  To use: Save as telemed_frontend.html and open in a browser. Some features (geolocation, Google Maps links) require network access.
+-->
+
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>TeleMed — Symptom Triage Prototype</title>
+  <style>
+    :root{
+      --bg:#0f1724; --card:#0b1220; --muted:#9aa4b2; --accent:#6ee7b7; --danger:#ff6b6b;
+      --glass: rgba(255,255,255,0.03);
+      font-family: Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
+    }
+    *{box-sizing:border-box}
+    body{margin:0; min-height:100vh; background: linear-gradient(180deg,#071025 0%, #0b1220 100%); color:#e6eef6}
+    .container{max-width:1100px; margin:28px auto; padding:20px}
+    header{display:flex; align-items:center; justify-content:space-between; gap:16px}
+    h1{font-size:20px; margin:0}
+    .sub{color:var(--muted); font-size:13px}
+    .layout{display:grid; grid-template-columns: 420px 1fr; gap:18px; margin-top:18px}
+    .card{background:var(--card); padding:16px; border-radius:12px; box-shadow: 0 6px 20px rgba(2,6,23,0.6)}
+
+    /* form */
+    label{display:block; font-size:13px; margin-bottom:8px}
+    textarea{width:100%; min-height:110px; background:var(--glass); border:1px solid rgba(255,255,255,0.04); color:inherit; padding:10px; border-radius:8px; resize:vertical}
+    input, select{width:100%; padding:10px; border-radius:8px; border:1px solid rgba(255,255,255,0.04); background:transparent; color:inherit}
+    .row{display:flex; gap:10px}
+    .btn{display:inline-block; padding:10px 14px; border-radius:10px; background:linear-gradient(90deg,var(--accent),#4fd1c5); color:#052225; font-weight:600; cursor:pointer; border:none}
+    .btn.secondary{background:transparent; color:var(--accent); border:1px solid rgba(110,231,183,0.12)}
+    .muted{color:var(--muted); font-size:13px}
+    .chips{display:flex; gap:8px; flex-wrap:wrap; margin-top:10px}
+    .chip{background:rgba(255,255,255,0.03); padding:6px 10px; border-radius:999px; font-size:13px}
+
+    /* results */
+    .result-title{display:flex; align-items:center; justify-content:space-between; gap:10px}
+    .doctor-list{display:grid; gap:12px; margin-top:10px}
+    .doctor{display:flex; align-items:center; gap:12px; padding:10px; border-radius:10px; background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));}
+    .avatar{width:48px; height:48px; border-radius:12px; flex-shrink:0; background:linear-gradient(180deg,#2b6cb0,#805ad5); display:flex; align-items:center; justify-content:center; font-weight:700}
+    .meta{flex:1}
+    .meta b{display:block}
+    .pill{font-size:12px; padding:6px 8px; border-radius:999px; background:rgba(255,255,255,0.03)}
+
+    /* chat */
+    .chat{display:flex; flex-direction:column; height:420px}
+    .messages{flex:1; overflow:auto; padding:12px; display:flex; flex-direction:column; gap:8px}
+    .msg{max-width:78%; padding:10px; border-radius:12px}
+    .msg.user{align-self:flex-end; background:linear-gradient(90deg,#66f6c3,#3bd3b0); color:#02211c}
+    .msg.doc{align-self:flex-start; background:rgba(255,255,255,0.03)}
+    .chat-input{display:flex; gap:8px; padding-top:8px}
+
+    footer{margin-top:20px; color:var(--muted); font-size:13px}
+
+    @media (max-width:980px){.layout{grid-template-columns:1fr;}.container{padding:12px}}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div>
+        <h1>TeleMed — Symptom Triage</h1>
+        <div class="sub">Type symptoms below. AI suggests possible causes, specialties and nearby doctors. (Prototype)</div>
+      </div>
+      <div class="muted">Paid & Free consultations • Mock AI • Consent for monitoring</div>
+    </header>
+
+    <main class="layout">
+      <section class="card" aria-labelledby="triage">
+        <h2 id="triage">Describe your symptoms</h2>
+        <p class="muted">Be as specific as possible (duration, location, severity, other conditions).</p>
+
+        <form id="symptomForm" onsubmit="return false;">
+          <label for="symptoms">Symptoms</label>
+          <textarea id="symptoms" placeholder="e.g. Sore throat for 3 days, mild fever, difficulty swallowing"></textarea>
+
+          <div style="margin-top:10px; display:flex; gap:10px; align-items:center">
+            <div style="flex:1">
+              <label for="severity">Severity (1 = mild, 10 = severe)</label>
+              <input id="severity" type="range" min="1" max="10" value="3" oninput="document.getElementById('sevLabel').textContent=this.value">
+              <div class="muted">Selected: <span id="sevLabel">3</span></div>
+            </div>
+            <div style="width:160px">
+              <label for="age">Age</label>
+              <input id="age" type="number" min="0" placeholder="e.g. 28">
+            </div>
+          </div>
+
+          <div style="margin-top:12px; display:flex; gap:8px; align-items:center">
+            <label style="display:flex; gap:8px; align-items:center"><input id="consent" type="checkbox"> <span class="muted">Allow monitoring & training</span></label>
+            <label style="display:flex; gap:8px; align-items:center"><input id="paid" type="checkbox"> <span class="muted">Paid consultation (priority)</span></label>
+          </div>
+
+          <div style="margin-top:12px; display:flex; gap:8px">
+            <button class="btn" id="analyzeBtn">Analyze</button>
+            <button class="btn secondary" id="nearbyBtn">Find nearby doctors</button>
+          </div>
+        </form>
+
+        <div id="aiResult" style="margin-top:14px; display:none">
+          <div class="result-title"><strong>AI Triage</strong><span class="muted" id="confLabel">Confidence 0%</span></div>
+          <div id="suggestions" class="chips"></div>
+
+          <div style="margin-top:12px" class="muted">Suggested specialties</div>
+          <div id="specialties" class="chips"></div>
+
+          <div style="margin-top:12px" class="muted">Recommended actions</div>
+          <div id="actions" class="chips"></div>
+        </div>
+
+      </section>
+
+      <section>
+        <div class="card" aria-labelledby="doctors">
+          <h2 id="doctors">Doctors & Nearby</h2>
+          <div class="muted">Select a doctor to start a chat or view directions.</div>
+
+          <div style="margin-top:12px; display:flex; gap:8px; align-items:center">
+            <input id="filterSpecialty" placeholder="Filter by specialty (e.g. ENT)" />
+            <select id="distance">
+              <option value="5">Within 5 km</option>
+              <option value="15">Within 15 km</option>
+              <option value="50">Within 50 km</option>
+            </select>
+            <button class="btn secondary" id="applyFilter">Apply</button>
+          </div>
+
+          <div id="doctorList" class="doctor-list" style="margin-top:12px">
+            <!-- dynamically filled -->
+          </div>
+
+          <div style="margin-top:12px;">
+            <small class="muted">Tip: click "Open in Google Maps" to see full directions. Geolocation permission required for 'nearby' auto-search.</small>
+          </div>
+        </div>
+
+        <div class="card" style="margin-top:12px">
+          <h3>Chat with a registered doctor</h3>
+          <div class="chat">
+            <div id="messages" class="messages" role="log" aria-live="polite"></div>
+            <div class="chat-input">
+              <input id="chatInput" placeholder="Type message to doctor..." />
+              <button class="btn" id="sendBtn">Send</button>
+            </div>
+          </div>
+        </div>
+
+      </section>
+    </main>
+
+    <footer class="container">
+      <div class="muted">Prototype — this frontend simulates AI and doctor interactions. Do not use for real medical decisions. If symptoms are severe, seek emergency care.</div>
+    </footer>
+  </div>
+
+<script>
+// ---------- Mock data & helpers ----------
+const mockDoctors = [
+  {id:1,name:'Dr. Anika Rao',spec:'General Physician',rating:4.6,distKm:3,paid:true},
+  {id:2,name:'Dr. Ramesh Iyer',spec:'ENT Specialist',rating:4.7,distKm:6,paid:false},
+  {id:3,name:'Dr. S. Patel',spec:'Pulmonologist',rating:4.5,distKm:12,paid:true},
+  {id:4,name:'Dr. Shruti Menon',spec:'Pediatrician',rating:4.8,distKm:8,paid:false},
+  {id:5,name:'Dr. K. Singh',spec:'Cardiologist',rating:4.4,distKm:20,paid:true}
+];
+
+function el(tag, cls){const e=document.createElement(tag); if(cls) e.className=cls; return e}
+
+// ---------- Simple client-side "AI" triage ----------
+function analyzeSymptoms(text, severity, age){
+  // naive keyword matching rules — placeholder for a real model
+  const lower = text.toLowerCase();
+  const suggestions = [];
+  const specialties = new Set();
+  let conf = 45 + Math.min(50, severity*5);
+
+  if(/fever|temperature|chills/.test(lower)) suggestions.push('Possible infection');
+  if(/throat|sore throat|difficulty swallowing|tonsil/.test(lower)) {suggestions.push('Upper respiratory infection / pharyngitis'); specialties.add('ENT');}
+  if(/cough|breath|shortness of breath|wheeze/.test(lower)) {suggestions.push('Lower respiratory issue (bronchitis/asthma)'); specialties.add('Pulmonology');}
+  if(/chest pain|tightness|palpitations/.test(lower)) {suggestions.push('Cardiac-related symptom — urgent evaluation advised'); specialties.add('Cardiology'); conf += 10}
+  if(/stomach|abdominal|nausea|vomit|diarrhea/.test(lower)) {suggestions.push('Gastrointestinal issue'); specialties.add('Gastroenterology');}
+  if(/rash|itch|allergy/.test(lower)) {suggestions.push('Dermatological / allergic reaction'); specialties.add('Dermatology');}
+  if(suggestions.length===0){ suggestions.push('Non-specific symptom. Monitor or consult general physician'); specialties.add('General Physician'); }
+
+  if(age && age < 12) specialties.add('Pediatrics');
+  if(severity>=8) conf = Math.min(100, conf+15);
+
+  return {suggestions, specialties: [...specialties], confidence: Math.min(100, conf)};
+}
+
+// ---------- UI wiring ----------
+const analyzeBtn = document.getElementById('analyzeBtn');
+const aiResult = document.getElementById('aiResult');
+const suggestionsEl = document.getElementById('suggestions');
+const specialtiesEl = document.getElementById('specialties');
+const actionsEl = document.getElementById('actions');
+const confLabel = document.getElementById('confLabel');
+
+analyzeBtn.addEventListener('click', ()=>{
+  const text = document.getElementById('symptoms').value.trim();
+  const severity = Number(document.getElementById('severity').value);
+  const age = Number(document.getElementById('age').value) || null;
+  const consent = document.getElementById('consent').checked;
+  const paid = document.getElementById('paid').checked;
+
+  if(!text){ alert('Please enter symptoms so the AI can analyze.'); return; }
+
+  const res = analyzeSymptoms(text, severity, age);
+  aiResult.style.display = 'block';
+  suggestionsEl.innerHTML = '';
+  res.suggestions.forEach(s=>{const c=el('div','chip'); c.textContent=s; suggestionsEl.appendChild(c)});
+  specialtiesEl.innerHTML = ''; res.specialties.forEach(s=>{const c=el('div','chip'); c.textContent=s; specialtiesEl.appendChild(c)});
+  actionsEl.innerHTML = '';
+
+  const a1 = el('div','chip'); a1.textContent = 'See a ' + res.specialties[0] + ' (recommended)'; actionsEl.appendChild(a1);
+  const a2 = el('div','chip'); a2.textContent = severity>=7 ? 'Seek urgent care / ER' : 'Book online consultation'; actionsEl.appendChild(a2);
+  if(paid){ const a3 = el('div','chip'); a3.textContent = 'Paid consultation: priority queue'; actionsEl.appendChild(a3) }
+
+  confLabel.textContent = 'Confidence ' + res.confidence + '%';
+
+  // Monitoring consent: save to localStorage for demo training toggle
+  if(consent){
+    const history = JSON.parse(localStorage.getItem('telemed_history')||'[]');
+    history.push({time: Date.now(), symptoms:text, severity, age, suggestions:res.suggestions.slice(0,3)});
+    localStorage.setItem('telemed_history', JSON.stringify(history));
+    console.log('Monitoring: saved anonymized sample to local storage (demo).');
+  }
+});
+
+// ---------- Doctor list rendering & filtering ----------
+function renderDoctors(list){
+  const container = document.getElementById('doctorList'); container.innerHTML='';
+  list.forEach(d=>{
+    const elDoc = el('div','doctor');
+    const avatar = el('div','avatar'); avatar.textContent = d.name.split(' ').map(x=>x[0]).slice(0,2).join('');
+    const meta = el('div','meta');
+    const title = el('div'); title.innerHTML = `<b>${d.name}</b><div class="muted">${d.spec} • ${d.rating} ★</div>`;
+    const right = el('div'); right.style.display='flex'; right.style.flexDirection='column'; right.style.alignItems='flex-end';
+    const dist = el('div'); dist.className='pill'; dist.textContent = d.distKm + ' km';
+    const actions = el('div'); actions.style.marginTop='8px';
+    const chatBtn = el('button','btn'); chatBtn.textContent='Chat'; chatBtn.style.marginRight='8px';
+    chatBtn.onclick = ()=> startChatWith(d);
+    const mapBtn = el('button','btn secondary'); mapBtn.textContent='Open in Google Maps'; mapBtn.onclick = ()=> openMapsFor(d);
+    actions.appendChild(chatBtn); actions.appendChild(mapBtn);
+
+    right.appendChild(dist); right.appendChild(actions);
+    meta.appendChild(title);
+    elDoc.appendChild(avatar); elDoc.appendChild(meta); elDoc.appendChild(right);
+    container.appendChild(elDoc);
+  })
+}
+
+function startChatWith(doc){
+  addMessage({who:'doc',text:`You are now connected to ${doc.name} (${doc.spec}). Hello! How can I help?`});
+}
+function openMapsFor(doc){
+  // open a Google Maps search for the doctor's name near current location if available
+  if(navigator.geolocation){
+    navigator.geolocation.getCurrentPosition(pos=>{
+      const q = encodeURIComponent(doc.name + ' ' + doc.spec);
+      const url = `https://www.google.com/maps/search/?api=1&query=${q}&center=${pos.coords.latitude},${pos.coords.longitude}`;
+      window.open(url,'_blank');
+    }, ()=>{
+      const q = encodeURIComponent(doc.name + ' ' + doc.spec);
+      const url = `https://www.google.com/maps/search/?api=1&query=${q}`;
+      window.open(url,'_blank');
+    })
+  } else {
+    const q = encodeURIComponent(doc.name + ' ' + doc.spec);
+    window.open(`https://www.google.com/maps/search/?api=1&query=${q}`,'_blank');
+  }
+}
+
+// initial render
+renderDoctors(mockDoctors);
+
+document.getElementById('applyFilter').addEventListener('click', ()=>{
+  const specFilter = document.getElementById('filterSpecialty').value.toLowerCase();
+  const distMax = Number(document.getElementById('distance').value);
+  const filtered = mockDoctors.filter(d=> (specFilter? d.spec.toLowerCase().includes(specFilter):true) && d.distKm <= distMax );
+  renderDoctors(filtered);
+});
+
+// "Find nearby doctors" uses geolocation to re-order mocked list by distance
+document.getElementById('nearbyBtn').addEventListener('click', ()=>{
+  if(!navigator.geolocation){ alert('Geolocation not supported by this browser.'); return; }
+  navigator.geolocation.getCurrentPosition(pos=>{
+    const lat = pos.coords.latitude, lon = pos.coords.longitude;
+    // For demo: randomly adjust distances
+    const mutated = mockDoctors.map(d=> ({...d, distKm: Math.max(1, Math.round(Math.abs((Math.sin(lat+d.id)*20)) ))})).sort((a,b)=>a.distKm-b.distKm);
+    renderDoctors(mutated);
+  }, err=>{ alert('Unable to get location. Make sure you allow permission.'); });
+});
+
+// ---------- Simple chat simulation ----------
+const messagesEl = document.getElementById('messages');
+function addMessage(msg){
+  const m = el('div', 'msg ' + (msg.who==='user'?'user':'doc'));
+  m.textContent = msg.text;
+  messagesEl.appendChild(m);
+  messagesEl.scrollTop = messagesEl.scrollHeight;
+}
+
+document.getElementById('sendBtn').addEventListener('click', ()=>{
+  const input = document.getElementById('chatInput'); const text = input.value.trim();
+  if(!text) return; addMessage({who:'user', text}); input.value='';
+
+  // Mock doctor reply after a short delay
+  setTimeout(()=>{
+    const replies = [
+      'Thanks for sharing. Can you tell me when it started?',
+      'Any associated symptoms like fever or swelling?',
+      'Based on this, I recommend a video consultation for a proper exam.',
+      'If pain is severe or you have trouble breathing, go to ER immediately.'
+    ];
+    const r = replies[Math.floor(Math.random()*replies.length)];
+    addMessage({who:'doc', text:r});
+  }, 700 + Math.random()*800);
+});
+
+// enter key sends
+document.getElementById('chatInput').addEventListener('keydown', e=>{ if(e.key==='Enter') document.getElementById('sendBtn').click(); });
+
+// accessibility: initial welcome
+addMessage({who:'doc', text: 'Welcome to TeleMed prototype. Describe your symptoms to get started.'});
+
+</script>
+</body>
+</html> 
